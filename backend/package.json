@@ -1,0 +1,41 @@
+{
+  "name": "pulseops-backend",
+  "version": "1.0.0",
+  "description": "PulseOps monitoring and incident response backend",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "node --test",
+    "db:auth": "node src/scripts/setupAuthTables.js",
+    "db:admin": "node src/scripts/createAdmin.js",
+    "db:refresh-tokens": "node src/scripts/setupRefreshTokensTable.js",
+    "db:monitoring": "node src/scripts/setupMonitoringTables.js",
+    "db:health-monitoring": "node src/scripts/setupHealthMonitoring.js",
+    "db:incidents": "node src/scripts/setupIncidents.js",
+    "db:alert-rules": "node src/scripts/setupAlertRules.js",
+    "db:notifications": "node src/scripts/setupNotifications.js",
+    "db:alert-rule-management": "node src/scripts/upgradeAlertRulesManagement.js",
+    "test:incident-flow": "node src/scripts/testAutomaticIncidentFlow.js",
+    "test:missed-heartbeat": "node src/scripts/testMissedHeartbeatFlow.js",
+    "test:alert-rules": "node src/scripts/testAlertRuleFlow.js",
+    "test:threshold-incidents": "node src/scripts/testThresholdIncidentFlow.js",
+    "test:alert-rule-management": "node src/scripts/testAlertRuleManagementFlow.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^17.0.0",
+    "express": "^5.0.0",
+    "express-rate-limit": "^8.6.2",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "mysql2": "^3.0.0",
+    "node-cron": "^4.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  }
+}
