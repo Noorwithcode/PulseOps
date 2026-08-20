@@ -44,16 +44,19 @@ const ensureTrigger = async (
 };
 
 /*
- * MySQL may block CREATE TRIGGER when binary
- * logging is enabled and the application user
- * does not have the required privilege.
+ * MySQL may block CREATE TRIGGER because of
+ * binary-log privileges. TiDB does not support
+ * CREATE TRIGGER and reports a parse error.
  */
-const isBinaryLogPrivilegeError = (
+const isTriggerUnavailableError = (
   error
 ) =>
   error?.errno === 1419 ||
   error?.code ===
-    "ER_BINLOG_CREATE_ROUTINE_NEED_SUPER";
+    "ER_BINLOG_CREATE_ROUTINE_NEED_SUPER" ||
+  error?.errno === 1064 ||
+  error?.code ===
+    "ER_PARSE_ERROR";
 
 const setupIncidentTables = async () => {
   const connection =
@@ -522,13 +525,13 @@ const setupIncidentTables = async () => {
       appendOnlyTriggersCreated = true;
     } catch (error) {
       if (
-        !isBinaryLogPrivilegeError(error)
+        !isTriggerUnavailableError(error)
       ) {
         throw error;
       }
 
       console.warn(
-        "Append-only triggers skipped because the database user does not have the required binary-log privilege."
+        "Append-only triggers skipped because this database does not support or permit CREATE TRIGGER."
       );
     }
 

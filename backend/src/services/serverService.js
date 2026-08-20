@@ -476,7 +476,7 @@ export const listServers = async (
     );
 
     await connection.query(
-      "START TRANSACTION READ ONLY, WITH CONSISTENT SNAPSHOT"
+      "START TRANSACTION WITH CONSISTENT SNAPSHOT"
     );
 
     transactionStarted = true;
@@ -1077,7 +1077,7 @@ export const deleteServerSafely = async ({
     if (
       !deletedRecord?.deletedAt ||
       Number(deletedRecord.version) !==
-        expectedVersion + 1
+      expectedVersion + 1
     ) {
       throw new AppError(
         500,
@@ -1212,7 +1212,7 @@ export const restoreServerSafely = async ({
     if (
       !restoredServer ||
       Number(restoredServer.version) !==
-        expectedVersion + 1
+      expectedVersion + 1
     ) {
       throw new AppError(
         500,
