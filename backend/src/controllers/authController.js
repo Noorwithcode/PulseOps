@@ -28,23 +28,34 @@ const getRefreshCookieOptions = () => {
     );
   }
 
+  const isProduction =
+    process.env.NODE_ENV === "production";
+
   return {
     httpOnly: true,
 
     /*
-     * HTTPS production environment only.
+     * Production:
+     * Render backend uses HTTPS.
      */
-    secure:
-      process.env.NODE_ENV === "production",
+    secure: isProduction,
 
     /*
-     * Prevent cross-site cookie usage.
+     * Local development:
+     *   sameSite = lax
+     *
+     * Production:
+     *   Vercel frontend and Render backend
+     *   are on different domains, therefore
+     *   SameSite=None is required.
      */
-    sameSite: "strict",
+    sameSite: isProduction
+      ? "none"
+      : "lax",
 
     /*
-     * Cookie will be available only
-     * under /api/auth routes.
+     * Cookie is only available
+     * under authentication endpoints.
      */
     path: "/api/auth",
 
@@ -89,9 +100,10 @@ export const login = async (
 
     /*
      * Refresh token must never be sent
-     * inside normal JSON response.
+     * inside the normal JSON response.
      *
-     * It is stored in an HTTP-only cookie.
+     * It is stored only inside an
+     * HTTP-only secure cookie.
      */
     const {
       refreshToken,
@@ -153,10 +165,11 @@ export const getCurrentUser = (
  *
  * POST /api/auth/refresh
  *
- * Refresh token is read ONLY from
- * HTTP-only cookie:
+ * Refresh token is read only from:
  *
  * pulseops_refresh_token
+ *
+ * HTTP-only cookie.
  * =========================================================
  */
 
@@ -169,7 +182,7 @@ export const refreshAccessToken =
     try {
       const refreshToken =
         req.cookies?.[
-        REFRESH_COOKIE_NAME
+          REFRESH_COOKIE_NAME
         ];
 
       const authentication =
@@ -186,14 +199,15 @@ export const refreshAccessToken =
         });
 
       /*
-       * Refresh-token rotation.
+       * Refresh token rotation.
        *
-       * Old refresh token becomes invalid
-       * and a new token is stored in cookie.
+       * The previous refresh token
+       * becomes invalid and a new
+       * refresh token is stored.
        */
       const {
         refreshToken:
-        rotatedRefreshToken,
+          rotatedRefreshToken,
 
         ...safeAuthentication
       } = authentication;
@@ -217,10 +231,11 @@ export const refreshAccessToken =
         });
     } catch (error) {
       /*
-       * Invalid / missing / expired refresh
-       * token means the stored browser cookie
-       * should also be removed.
+       * Missing, invalid or expired
+       * refresh token should also
+       * remove the browser cookie.
        */
+
       const {
         maxAge,
         ...clearCookieOptions
@@ -257,12 +272,12 @@ export const logout = async (
 
   try {
     /*
-     * Refresh token is taken from
-     * the HTTP-only cookie.
+     * Refresh token is taken
+     * from the HTTP-only cookie.
      */
     const refreshToken =
       req.cookies?.[
-      REFRESH_COOKIE_NAME
+        REFRESH_COOKIE_NAME
       ];
 
     await logoutUser({
@@ -270,7 +285,7 @@ export const logout = async (
     });
 
     /*
-     * Remove browser refresh cookie.
+     * Remove refresh cookie.
      */
     res.clearCookie(
       REFRESH_COOKIE_NAME,
@@ -287,8 +302,8 @@ export const logout = async (
       });
   } catch (error) {
     /*
-     * Even if database logout/revoke fails,
-     * clear the browser cookie.
+     * Even if database revoke fails,
+     * browser cookie should be removed.
      */
     res.clearCookie(
       REFRESH_COOKIE_NAME,
